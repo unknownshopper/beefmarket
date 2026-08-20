@@ -1,10 +1,37 @@
 import { Link } from 'react-router-dom'
 import Header from '../components/Header'
+import SEO from '../components/SEO'
 import { BUSINESS } from '../catalog'
+
+const SITE = 'https://beefmarketvhsa.web.app'
+const businessLd = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'BEEF MARKET',
+  image: `${SITE}/logo.jpg`,
+  telephone: `+52${BUSINESS.phoneE164.slice(2)}`,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Tulipanes #108, Fracc. Lago Ilusiones',
+    addressLocality: 'Villahermosa',
+    addressRegion: 'Tabasco',
+    addressCountry: 'MX',
+  },
+  url: SITE,
+  priceRange: '$$',
+})
 
 export default function Home() {
   return (
     <div className="min-h-dvh bg-beef-bg">
+      <SEO
+        title="BEEF MARKET | Cortes premium, quesos y parrilladas en Villahermosa"
+        description="Cortes premium, quesos, embutidos y parrilladas para eventos en Villahermosa. Cotiza y pide por WhatsApp."
+        url="/"
+        type="website"
+      >
+        <script type="application/ld+json">{businessLd}</script>
+      </SEO>
       <Header />
       <main className="px-4 pt-4 pb-6 safe-bottom">
       <section className="mb-8 text-center">

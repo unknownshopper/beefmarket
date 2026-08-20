@@ -2,7 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import Productos from './pages/Productos'
 import Eventos from './pages/Eventos'
-import Inventario from './pages/Inventario'
+import Proveedores from './pages/Proveedores'
 
 export default function App() {
   return (
@@ -10,7 +10,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/productos" element={<Productos />} />
       <Route path="/eventos" element={<Eventos />} />
-      <Route path="/inventario" element={<Inventario />} />
+      <Route path="/proveedores" element={<Proveedores />} />
     </Routes>
   )
 }

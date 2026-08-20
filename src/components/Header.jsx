@@ -8,7 +8,7 @@ export default function Header({ right = null }) {
     { to: '/', label: 'Inicio' },
     { to: '/productos', label: 'Productos' },
     { to: '/eventos', label: 'Eventos' },
-    { to: '/inventario', label: 'Inventario' },
+    { to: '/proveedores', label: 'Proveedores' },
   ]
 
   return (

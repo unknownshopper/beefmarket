@@ -3,6 +3,7 @@ import CategoryGrid from '../components/CategoryGrid'
 import ProductSlides from '../components/ProductSlides'
 import CartDrawer from '../components/CartDrawer'
 import Header from '../components/Header'
+import SEO from '../components/SEO'
 import { BUSINESS, CATEGORIES, PRODUCTS } from '../catalog'
 import { loadCart, saveCart } from '../lib/storage'
 
@@ -66,6 +67,12 @@ export default function Productos() {
 
   return (
     <div className="min-h-dvh bg-beef-bg">
+      <SEO
+        title="Productos en línea | BEEF MARKET"
+        description="Catálogo de cortes premium, quesos, embutidos y más. Arma tu pedido y cotiza por WhatsApp."
+        url="/productos"
+        type="product"
+      />
       <Header right={cartButton} />
 
       <main className="px-4 pt-4 pb-6 safe-bottom">

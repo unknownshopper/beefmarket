@@ -11,10 +11,38 @@ export const DEFAULT_INVENTORY = [
   { id: 'salsas', name: 'Salsas y complementos', unit: 'pza', cost: 18, perPerson: 1, stock: 100 },
 ]
 
+// Productos incluidos en cada tipo de servicio.
+export const SERVICE_MENUS = {
+  basica: ['arrachera', 'chorizo', 'salchicha', 'tortillas', 'carbon', 'salsas'],
+  premium: ['newyork', 'arrachera', 'pollo', 'chorizo', 'salchicha', 'tortillas', 'carbon', 'salsas'],
+  parrillero: ['newyork', 'arrachera', 'pollo', 'chorizo', 'salchicha', 'tortillas', 'carbon', 'salsas'],
+}
+
 export const SERVICE_TYPES = {
-  basica: { label: 'Parrillada básica', extraPerPerson: 0, minFee: 0 },
-  premium: { label: 'Parrillada premium', extraPerPerson: 70, minFee: 500 },
-  parrillero: { label: 'Parrillero a domicilio', extraPerPerson: 150, minFee: 1500 },
+  basica: {
+    label: 'Parrillada básica',
+    description: 'Cortes para parrilla, embutidos y complementos.',
+    extraPerPerson: 0,
+    minFee: 0,
+    personnelPer: 0,
+    personnelCost: 0,
+  },
+  premium: {
+    label: 'Parrillada premium',
+    description: 'Cortes premium + parrillada básica.',
+    extraPerPerson: 70,
+    minFee: 500,
+    personnelPer: 0,
+    personnelCost: 0,
+  },
+  parrillero: {
+    label: 'Parrillero a domicilio',
+    description: 'Incluye asador en el evento.',
+    extraPerPerson: 0,
+    minFee: 0,
+    personnelPer: 40,
+    personnelCost: 1500,
+  },
 }
 
 export function loadInventory() {
@@ -38,22 +66,34 @@ export function saveInventory(inventory) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(inventory))
 }
 
+function buildFoodDetails(inventory, people, menuIds) {
+  const menuSet = new Set(menuIds)
+  return inventory
+    .filter((item) => menuSet.has(item.id) && (Number(item.perPerson) || 0) > 0)
+    .map((item) => ({
+      ...item,
+      amount: (Number(item.perPerson) || 0) * people,
+      subtotal: (Number(item.cost) || 0) * (Number(item.perPerson) || 0) * people,
+    }))
+}
+
 export function calculateEventCost(inventory, people, serviceType) {
   const service = SERVICE_TYPES[serviceType] || SERVICE_TYPES.basica
-  const foodCost = inventory.reduce((sum, item) => {
-    return sum + (Number(item.cost) || 0) * (Number(item.perPerson) || 0) * people
-  }, 0)
-  const serviceCost = Math.max(service.extraPerPerson * people, service.minFee)
+  const menuIds = SERVICE_MENUS[serviceType] || SERVICE_MENUS.basica
+  const details = buildFoodDetails(inventory, people, menuIds)
+  const foodCost = details.reduce((sum, item) => sum + item.subtotal, 0)
+  const personnelCount = service.personnelPer > 0 ? Math.ceil(people / service.personnelPer) : 0
+  const personnelCost = personnelCount * service.personnelCost
+  const baseServiceCost = Math.max(service.extraPerPerson * people, service.minFee)
+  const serviceCost = baseServiceCost + personnelCost
+
   return {
     foodCost,
     serviceCost,
     total: foodCost + serviceCost,
-    details: inventory
-      .filter((item) => (Number(item.perPerson) || 0) > 0)
-      .map((item) => ({
-        ...item,
-        amount: (Number(item.perPerson) || 0) * people,
-        subtotal: (Number(item.cost) || 0) * (Number(item.perPerson) || 0) * people,
-      })),
+    details,
+    personnelCount,
+    personnelCost,
+    baseServiceCost,
   }
 }
