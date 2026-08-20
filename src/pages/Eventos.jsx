@@ -56,7 +56,7 @@ export default function Eventos() {
       <main className="px-4 pt-4 pb-6 safe-bottom">
         <div className="mb-4">
           <h1 className="text-xl font-semibold">Cotiza tu parrillada</h1>
-          <p className="mt-1 text-sm text-white/70">Elige el día, número de personas y tipo de servicio.</p>
+          <p className="mt-1 text-sm text-white/70">Elige el día, el servicio y el número de personas.</p>
         </div>
 
         <div className="space-y-4">
@@ -77,30 +77,6 @@ export default function Eventos() {
           <div className="rounded-3xl border border-beef-line bg-[#0d0d0f] p-4">
             <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-beef-accent">
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-beef-accent text-xs font-bold text-black">2</span>
-              Personas
-            </div>
-            <label className="mb-1 block text-sm font-medium text-white/80">Número de personas</label>
-            <input
-              type="number"
-              min={1}
-              value={people}
-              onChange={(e) => setPeople(Number(e.target.value))}
-              className="w-full rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-beef-accent"
-            />
-            <input
-              type="range"
-              min={5}
-              max={200}
-              step={5}
-              value={people}
-              onChange={(e) => setPeople(Number(e.target.value))}
-              className="mt-3 w-full accent-beef-accent"
-            />
-          </div>
-
-          <div className="rounded-3xl border border-beef-line bg-beef-card p-4">
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-beef-accent">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-beef-accent text-xs font-bold text-black">3</span>
               Servicio
             </div>
             <label className="mb-2 block text-sm font-medium text-white/80">Tipo de servicio</label>
@@ -131,6 +107,30 @@ export default function Eventos() {
                 )
               })}
             </div>
+          </div>
+
+          <div className="rounded-3xl border border-beef-line bg-beef-card p-4">
+            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-beef-accent">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-beef-accent text-xs font-bold text-black">3</span>
+              Personas
+            </div>
+            <label className="mb-1 block text-sm font-medium text-white/80">Número de personas</label>
+            <input
+              type="number"
+              min={1}
+              value={people}
+              onChange={(e) => setPeople(Number(e.target.value))}
+              className="w-full rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-beef-accent"
+            />
+            <input
+              type="range"
+              min={5}
+              max={200}
+              step={5}
+              value={people}
+              onChange={(e) => setPeople(Number(e.target.value))}
+              className="mt-3 w-full accent-beef-accent"
+            />
           </div>
         </div>
 
@@ -182,7 +182,7 @@ export default function Eventos() {
             rel="noreferrer"
             className="mt-4 flex w-full items-center justify-center rounded-2xl bg-beef-accent px-4 py-3 text-sm font-semibold text-black"
           >
-            Cotizar por WhatsApp
+            Enviar por WhatsApp
           </a>
           <div className="mt-2 text-center text-xs text-white/50">
             El precio final se confirma al momento. Puedes ajustar los costos en Proveedores.

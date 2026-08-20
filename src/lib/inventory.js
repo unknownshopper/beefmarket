@@ -36,7 +36,7 @@ export const SERVICE_TYPES = {
     personnelCost: 0,
   },
   parrillero: {
-    label: 'Parrillero a domicilio',
+    label: '+ Parrillero a domicilio',
     description: 'Incluye asador en el evento.',
     extraPerPerson: 0,
     minFee: 0,
