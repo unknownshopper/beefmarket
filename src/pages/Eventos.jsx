@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Header from '../components/Header'
 import Login from '../components/Login'
 import MapPicker from '../components/MapPicker'
@@ -11,15 +11,19 @@ import { canAccessEventos, getRole } from '../lib/roles'
 import {
   BUSINESS_COORDS,
   calculateEventCost,
+  calculateTransportCost,
   haversineDistance,
   loadInventory,
   SERVICE_TYPES,
-  TRANSPORT_RATE_PER_KM,
 } from '../lib/inventory'
+import { getClientByPhone, saveClient, toE164 } from '../lib/clients'
+import { saveQuote } from '../lib/quotes'
 
 export default function Eventos() {
   const { user, logout } = useAuth()
   const [clientName, setClientName] = useState('')
+  const [clientPhone, setClientPhone] = useState('')
+  const clientPhoneE164 = toE164(clientPhone)
   const [date, setDate] = useState('')
   const [people, setPeople] = useState(20)
   const [serviceType, setServiceType] = useState('basica')
@@ -28,10 +32,26 @@ export default function Eventos() {
   const [address, setAddress] = useState(null)
   const [clientMapsLink, setClientMapsLink] = useState('')
   const [inventory, setInventory] = useState(() => loadInventory())
+  const pdfRef = useRef(null)
 
   useEffect(() => {
     setInventory(loadInventory())
   }, [])
+
+  useEffect(() => {
+    if (!clientPhoneE164) return
+    let active = true
+    getClientByPhone(clientPhone).then((client) => {
+      if (!active || !client) return
+      if (client.name) setClientName(client.name)
+      if (client.pin) setPin(client.pin)
+      if (client.clientMapsLink) setClientMapsLink(client.clientMapsLink)
+      if (client.address) setAddress(client.address)
+    })
+    return () => {
+      active = false
+    }
+  }, [clientPhoneE164])
 
   const straightDistanceKm = useMemo(
     () => (pin ? haversineDistance(BUSINESS_COORDS, pin) : 0),
@@ -39,7 +59,7 @@ export default function Eventos() {
   )
 
   const distanceKm = routeDistanceKm !== null ? routeDistanceKm : straightDistanceKm
-  const transportCost = Math.round(distanceKm * TRANSPORT_RATE_PER_KM)
+  const transportCost = pin ? calculateTransportCost(distanceKm) : 0
 
   const estimate = useMemo(
     () => calculateEventCost(inventory, Number(people) || 0, serviceType, transportCost),
@@ -47,7 +67,9 @@ export default function Eventos() {
   )
 
   const messageLines = [
-    `Hola ${clientName || 'Cliente'}, te envío la cotización de ${BUSINESS.name}.`,
+    `Hola ${clientName || 'Cliente'}, ésta es la cotización de su pedido en ${BUSINESS.name}.`,
+    '',
+    `Teléfono cliente: ${clientPhone || 'Sin teléfono'}`,
     `Fecha: ${date || 'Por definir'}`,
     `Personas: ${people}`,
     `Servicio: ${SERVICE_TYPES[serviceType].label}`,
@@ -70,24 +92,65 @@ export default function Eventos() {
     `Distancia: ${distanceKm.toFixed(1)} km`,
     '',
     'Resumen estimado:',
-    ...estimate.details.map((d) => `- ${d.name}: ${d.amount.toFixed(2)} ${d.unit} (${formatMXN(d.subtotal)})`),
+    ...estimate.details.map((d) => `• ${d.name}: ${d.amount.toFixed(2)} ${d.unit} (${formatMXN(d.subtotal)})`),
     ...
       estimate.personnelCount > 0
-        ? [`- Asador(es) a domicilio: ${estimate.personnelCount} (${formatMXN(estimate.personnelCost)})`]
+        ? [`• Asador(es) a domicilio: ${estimate.personnelCount} (${formatMXN(estimate.personnelCost)})`]
         : [],
     ...
       estimate.transportCost > 0
-        ? [`- Traslado: ${distanceKm.toFixed(1)} km · ${formatMXN(estimate.transportCost)}`]
+        ? [`• Traslado: ${distanceKm.toFixed(1)} km · ${formatMXN(estimate.transportCost)}`]
         : [],
     '',
     `Costo comida: ${formatMXN(estimate.foodCost)}`,
     `Servicio: ${formatMXN(estimate.serviceCost)}`,
     `Total estimado: ${formatMXN(estimate.total)}`,
+    `Costo por persona: ${formatMXN(estimate.total / (Number(people) || 1))}`,
     '',
-    '¿Me confirman disponibilidad y precio final?',
+    'Esperamos el comprobante de su transferencia del 50% a la cuenta XXX XXX XXXXX del banco XXXX para apartar su fecha. Saludos',
+    '',
+    'Los precios no incluyen iva.',
   ]
 
-  const waUrl = buildWhatsAppUrl(BUSINESS.phoneE164, messageLines.join('\n'))
+  const waUrl = clientPhoneE164
+    ? buildWhatsAppUrl(clientPhoneE164, messageLines.join('\n'))
+    : '#'
+
+  async function handleSend() {
+    if (!clientPhoneE164 || !waUrl || waUrl === '#') return
+    try {
+      await saveClient({
+        name: clientName,
+        phone: clientPhone,
+        pin,
+        clientMapsLink,
+        address,
+      })
+      await saveQuote({
+        clientName,
+        clientPhone,
+        clientPhoneE164,
+        date,
+        people,
+        serviceType,
+        serviceLabel: SERVICE_TYPES[serviceType].label,
+        pin,
+        clientMapsLink,
+        address,
+        distanceKm,
+        transportCost: estimate.transportCost,
+        foodCost: estimate.foodCost,
+        serviceCost: estimate.serviceCost,
+        personnelCost: estimate.personnelCost,
+        personnelCount: estimate.personnelCount,
+        total: estimate.total,
+        details: estimate.details,
+      })
+    } catch (err) {
+      console.error('Error guardando cotización:', err)
+    }
+    window.open(waUrl, '_blank', 'noopener,noreferrer')
+  }
 
   if (user === undefined) {
     return (
@@ -122,9 +185,10 @@ export default function Eventos() {
         url="/eventos"
         type="website"
       />
-      <Header />
+      <div className="print:hidden">
+        <Header />
 
-      <main className="px-4 pt-4 pb-6 safe-bottom">
+        <main className="px-4 pt-4 pb-6 safe-bottom">
         <div className="mb-4 flex items-end justify-between">
           <div>
             <h1 className="text-xl font-semibold">Cotiza tu parrillada</h1>
@@ -161,6 +225,15 @@ export default function Eventos() {
                   className="w-full rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-beef-accent"
                   placeholder="Ej. Nora Reséndiz"
                 />
+                <label className="mb-1 mt-3 block text-sm font-medium text-white/80">WhatsApp del cliente</label>
+                <input
+                  type="tel"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value.replace(/[^0-9+\s]/g, '').slice(0, 15))}
+                  className="w-full rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm text-white outline-none focus:border-beef-accent"
+                  placeholder="993 000 0000"
+                />
+                <p className="mt-1 text-xs text-white/50">10 dígitos o +52 seguido del número.</p>
               </div>
 
               <div className="rounded-3xl border border-beef-line bg-[#0d0d0f] p-4">
@@ -211,7 +284,7 @@ export default function Eventos() {
                       </div>
                       <div>
                         <span className="text-white/60">Tarifa:</span>{' '}
-                        {formatMXN(TRANSPORT_RATE_PER_KM)}/km
+                        $500 base / 3 km + $500 cada 2 km
                       </div>
                     </div>
                     {address ? (
@@ -353,14 +426,22 @@ export default function Eventos() {
                 </div>
               </div>
 
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 flex w-full items-center justify-center rounded-2xl bg-beef-accent px-4 py-3 text-sm font-semibold text-black"
+              <button
+                onClick={handleSend}
+                disabled={!clientPhoneE164}
+                className={`mt-4 flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold disabled:opacity-50 ${
+                  clientPhoneE164 ? 'bg-beef-accent text-black' : 'bg-beef-accent/50 text-black/60'
+              }`}
               >
-                Enviar por WhatsApp
-              </a>
+                {clientPhoneE164 ? 'Enviar cotización por WhatsApp' : 'Ingresa un WhatsApp válido'}
+              </button>
+
+              <button
+                onClick={() => window.print()}
+                className="mt-2 flex w-full items-center justify-center rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm font-semibold text-white"
+              >
+                Crear PDF
+              </button>
 
               <div className="mt-2 text-center text-xs text-white/50">
                 El precio final se confirma al momento. Puedes ajustar los costos en Proveedores.
@@ -369,6 +450,128 @@ export default function Eventos() {
           </>
         )}
       </main>
+      </div>
+
+      {hasAccess ? (
+        <div
+          ref={pdfRef}
+          className="hidden print:block w-[210mm] min-h-[297mm] bg-white p-8 text-sm text-black"
+          style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+        >
+          <div className="flex items-center gap-4 border-b-2 border-amber-500 pb-4 mb-6">
+            <img
+              src="https://beefmarketvhsa.web.app/logo.jpg?v=2"
+              alt="BEEF MARKET"
+              className="h-16 w-16 rounded-xl object-cover"
+            />
+            <div>
+              <div className="text-2xl font-extrabold tracking-wide">BEEF MARKET</div>
+              <div className="text-gray-600">{BUSINESS.addressShort}</div>
+              <div className="text-gray-600">{BUSINESS.displayPhone}</div>
+            </div>
+          </div>
+
+          <h2 className="text-xl font-bold mb-4">Cotización de su pedido en BEEF MARKET</h2>
+
+          <div className="mb-6 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-semibold text-gray-700">Cliente:</span> {clientName || 'Sin nombre'}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">Teléfono:</span> {clientPhone || 'Sin teléfono'}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">Fecha:</span> {date || 'Por definir'}
+            </div>
+            <div>
+              <span className="font-semibold text-gray-700">Personas:</span> {people}
+            </div>
+            <div className="col-span-2">
+              <span className="font-semibold text-gray-700">Servicio:</span> {SERVICE_TYPES[serviceType].label}
+            </div>
+            <div className="col-span-2">
+              <span className="font-semibold text-gray-700">Ubicación:</span>{' '}
+              {clientMapsLink || (pin ? `https://www.google.com/maps?q=${pin.lat.toFixed(5)},${pin.lng.toFixed(5)}` : 'No especificada')}
+            </div>
+          </div>
+
+          {address ? (
+            <div className="mb-4 text-sm text-gray-700">
+              <span className="font-semibold">Dirección:</span>{' '}
+              {[
+                address.address?.house_number,
+                address.address?.road,
+                address.address?.suburb,
+                address.address?.city || address.address?.town || address.address?.village,
+                address.address?.state,
+                address.address?.postcode,
+                address.address?.country,
+              ]
+                .filter(Boolean)
+                .join(', ')}
+            </div>
+          ) : null}
+
+          <table className="w-full border-collapse text-sm mb-6">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="py-2 text-left">Concepto</th>
+                <th className="py-2 text-right">Cantidad</th>
+                <th className="py-2 text-right">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {estimate.details.map((d) => (
+                <tr key={d.id} className="border-b border-gray-100">
+                  <td className="py-2">{d.name}</td>
+                  <td className="py-2 text-right">{d.amount.toFixed(2)} {d.unit}</td>
+                  <td className="py-2 text-right">{formatMXN(d.subtotal)}</td>
+                </tr>
+              ))}
+              {estimate.personnelCount > 0 ? (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2">Asador(es) a domicilio</td>
+                  <td className="py-2 text-right">{estimate.personnelCount} persona(s)</td>
+                  <td className="py-2 text-right">{formatMXN(estimate.personnelCost)}</td>
+                </tr>
+              ) : null}
+              {estimate.transportCost > 0 ? (
+                <tr className="border-b border-gray-100">
+                  <td className="py-2">Traslado ({distanceKm.toFixed(1)} km)</td>
+                  <td className="py-2 text-right">-</td>
+                  <td className="py-2 text-right">{formatMXN(estimate.transportCost)}</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+
+          <div className="mb-2 flex justify-between text-gray-700">
+            <span>Costo comida</span>
+            <span>{formatMXN(estimate.foodCost)}</span>
+          </div>
+          <div className="mb-2 flex justify-between text-gray-700">
+            <span>Servicio</span>
+            <span>{formatMXN(estimate.serviceCost)}</span>
+          </div>
+
+          <div className="mt-4 flex justify-between border-t-2 border-gray-200 pt-3 text-lg font-bold">
+            <span>Total estimado</span>
+            <span>{formatMXN(estimate.total)}</span>
+          </div>
+
+          <div className="mt-2 flex justify-between text-sm font-semibold text-gray-700">
+            <span>Costo por persona</span>
+            <span>{formatMXN(estimate.total / (Number(people) || 1))}</span>
+          </div>
+
+          <p className="mt-6 text-xs text-gray-500">
+            Esperamos el comprobante de su transferencia del 50% a la cuenta XXX XXX XXXXX del banco XXXX para apartar su fecha.
+          </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Los precios no incluyen IVA.
+          </p>
+        </div>
+      ) : null}
     </div>
   )
 }

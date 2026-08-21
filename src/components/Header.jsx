@@ -35,6 +35,7 @@ export default function Header({ right = null }) {
     { to: '/productos', label: 'Productos' },
     { to: '/eventos', label: 'Eventos' },
     { to: '/proveedores', label: 'Proveedores' },
+    { to: '/crm', label: 'CRM' },
   ]
 
   function closeMenu() {

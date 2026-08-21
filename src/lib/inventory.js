@@ -60,7 +60,15 @@ export const ZONES = [
 
 // Coordenadas de la dirección fija: Tulipanes #108, Lago Ilusiones, 86040 Villahermosa, Tab.
 export const BUSINESS_COORDS = { lat: 17.9980712, lng: -92.9279427 }
-export const TRANSPORT_RATE_PER_KM = 15
+
+// Tarifa de traslado: $500 base hasta 3 km, $500 adicionales por cada 2 km extra.
+export function calculateTransportCost(distanceKm) {
+  if (distanceKm <= 0) return 0
+  if (distanceKm <= 3) return 500
+  const extraKm = Math.max(0, distanceKm - 3)
+  const extraBlocks = Math.ceil(extraKm / 2)
+  return 500 + extraBlocks * 500
+}
 
 export function haversineDistance(a, b) {
   const R = 6371
