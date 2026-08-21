@@ -252,6 +252,45 @@ export const PRODUCTS = {
   ],
 }
 
+export const TABLES = [
+  {
+    id: 'tabla-1',
+    name: 'Tabla 1',
+    description: 'Tabla de carnes y quesos para 2-3 personas.',
+    image:
+      'https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=1200&q=80',
+    items: ['Especificar cortes', 'Especificar quesos', 'Especificar accesorios'],
+    price: 0,
+  },
+  {
+    id: 'tabla-2',
+    name: 'Tabla 2',
+    description: 'Tabla de carnes y quesos para 4-6 personas.',
+    image:
+      'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80',
+    items: ['Especificar cortes', 'Especificar quesos', 'Especificar accesorios'],
+    price: 0,
+  },
+  {
+    id: 'tabla-3',
+    name: 'Tabla 3',
+    description: 'Tabla de carnes y quesos para 8-10 personas.',
+    image:
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1200&q=80',
+    items: ['Especificar cortes', 'Especificar quesos', 'Especificar accesorios'],
+    price: 0,
+  },
+  {
+    id: 'tabla-4',
+    name: 'Tabla 4',
+    description: 'Tabla de carnes y quesos para 12+ personas.',
+    image:
+      'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?auto=format&fit=crop&w=1200&q=80',
+    items: ['Especificar cortes', 'Especificar quesos', 'Especificar accesorios'],
+    price: 0,
+  },
+]
+
 export const BUSINESS = {
   name: 'BEEF MARKET',
   phoneE164: '529932802301',

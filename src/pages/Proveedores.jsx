@@ -51,7 +51,7 @@ export default function Proveedores() {
       <div className="min-h-dvh bg-beef-bg">
         <Header />
         <main className="flex min-h-[60vh] items-center justify-center px-4 pt-6">
-          <Login />
+          <Login title="Acceso a Proveedores" subtitle="Solo administradores y Nora." />
         </main>
       </div>
     )
@@ -110,22 +110,21 @@ export default function Proveedores() {
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-beef-line bg-black/20 text-xs text-white/60">
                     <tr>
-                      <th className="px-4 py-3 font-medium">Producto</th>
+                      <th className="min-w-[12rem] px-4 py-3 font-medium">Producto</th>
                       <th className="px-4 py-3 font-medium">Unidad</th>
                       <th className="px-4 py-3 font-medium">Costo</th>
                       <th className="px-4 py-3 font-medium">Por persona</th>
-                      <th className="px-4 py-3 font-medium">Stock</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-beef-line">
                     {items.map((item) => (
                       <tr key={item.id}>
-                        <td className="px-4 py-3">
+                        <td className="min-w-[12rem] px-4 py-3">
                           <input
                             type="text"
                             value={item.name}
                             onChange={(e) => updateItem(item.id, 'name', e.target.value)}
-                            className="w-full rounded-xl border border-beef-line bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-beef-accent"
+                            className="w-full min-w-[10rem] rounded-xl border border-beef-line bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-beef-accent"
                           />
                         </td>
                         <td className="px-4 py-3">
@@ -154,16 +153,6 @@ export default function Proveedores() {
                             value={item.perPerson}
                             onChange={(e) => updateItem(item.id, 'perPerson', Number(e.target.value))}
                             className="w-28 rounded-xl border border-beef-line bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-beef-accent"
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={item.stock}
-                            onChange={(e) => updateItem(item.id, 'stock', Number(e.target.value))}
-                            className="w-24 rounded-xl border border-beef-line bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-beef-accent"
                           />
                         </td>
                       </tr>

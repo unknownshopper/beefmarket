@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 
-export default function Login() {
+export default function Login({ title = 'Acceso autorizado', subtitle = 'Ingresa con tu correo autorizado.' }) {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -24,8 +24,8 @@ export default function Login() {
 
   return (
     <div className="mx-auto w-full max-w-md rounded-3xl border border-beef-line bg-beef-card p-6">
-      <h2 className="text-xl font-semibold">Acceso a Proveedores</h2>
-      <p className="mt-1 text-sm text-white/70">Ingresa con tu correo autorizado.</p>
+      <h2 className="text-xl font-semibold">{title}</h2>
+      <p className="mt-1 text-sm text-white/70">{subtitle}</p>
 
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>

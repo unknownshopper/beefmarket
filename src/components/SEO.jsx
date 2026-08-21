@@ -7,7 +7,7 @@ const TWITTER_HANDLE = '@unknownshoppers'
 export default function SEO({
   title,
   description,
-  image = '/logo.jpg',
+  image = '/logo.jpg?v=2',
   url,
   type = 'website',
   children,

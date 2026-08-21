@@ -8,7 +8,7 @@ const businessLd = JSON.stringify({
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   name: 'BEEF MARKET',
-  image: `${SITE}/logo.jpg`,
+  image: `${SITE}/logo.jpg?v=2`,
   telephone: `+52${BUSINESS.phoneE164.slice(2)}`,
   address: {
     '@type': 'PostalAddress',
@@ -58,8 +58,8 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <div className="text-xl font-bold">Productos en línea</div>
-            <div className="mt-1 text-sm text-white/80">Catálogo de carnes, quesos y embutidos.</div>
+            <div className="text-xl font-bold">Olive by BEEF MARKET</div>
+            <div className="mt-1 text-sm text-white/80">Tablas de carnes y quesos con accesorios.</div>
           </div>
         </Link>
 

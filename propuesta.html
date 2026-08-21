@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Propuesta económica — BEEF MARKET</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: #f3f4f6;
+        color: #1f2937;
+        line-height: 1.45;
+        font-size: 9.5pt;
+      }
+      .page {
+        width: 210mm;
+        max-width: 210mm;
+        min-height: 297mm;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 12mm 18mm;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+      }
+      .page > * {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      h1, h2, p, ul, li, table, .highlight, .signature, .footer {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #f59e0b;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand img {
+        width: 56px;
+        height: 56px;
+        object-fit: cover;
+        border-radius: 12px;
+      }
+      .brand-name {
+        font-weight: 800;
+        font-size: 1.3rem;
+        letter-spacing: 0.05em;
+      }
+      .brand-sub {
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 6px;
+        color: #111827;
+      }
+      h2 {
+        font-size: 1rem;
+        margin-top: 18px;
+        margin-bottom: 8px;
+        color: #f59e0b;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 4px;
+      }
+      .meta {
+        color: #4b5563;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+      .highlight {
+        background: #fff7ed;
+        border-left: 4px solid #f59e0b;
+        padding: 12px 16px;
+        margin: 14px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .price {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #111827;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+      }
+      th, td {
+        text-align: left;
+        padding: 6px 8px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+      th {
+        color: #6b7280;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      ul {
+        padding-left: 18px;
+        margin: 6px 0;
+      }
+      li {
+        margin-bottom: 4px;
+      }
+      .signature {
+        display: flex;
+        justify-content: space-between;
+        gap: 40px;
+        margin-top: 40px;
+      }
+      .signature div {
+        flex: 1;
+        border-top: 1px solid #9ca3af;
+        padding-top: 8px;
+        font-size: 0.85rem;
+        color: #4b5563;
+      }
+      .footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e7eb;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #6b7280;
+      }
+      .actions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        background: #f59e0b;
+        color: #000;
+        border: none;
+        padding: 14px 22px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transition: transform 0.15s ease;
+      }
+      button:hover {
+        transform: translateY(-2px);
+      }
+      @media print {
+        @page {
+          size: A4;
+          margin: 12mm;
+        }
+        .actions, .no-print {
+          display: none !important;
+        }
+        body {
+          background: #fff;
+        }
+        .page {
+          width: 100%;
+          max-width: 100%;
+          min-height: auto;
+          padding: 0;
+          margin: 0;
+          box-shadow: none;
+          background: #fff;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="propuesta" class="page">
+      <div class="topbar">
+        <div class="brand">
+          <img src="https://beefmarketvhsa.web.app/logo.jpg?v=2" alt="BEEF MARKET" />
+          <div>
+            <div class="brand-name">BEEF MARKET</div>
+            <div class="brand-sub">Cortes premium · Parrilladas · Villahermosa</div>
+          </div>
+        </div>
+        <div style="text-align: right; font-size: 0.85rem; color: #6b7280;">
+          Propuesta económica<br />
+          20 de agosto de 2026
+        </div>
+      </div>
+
+      <h1>Propuesta económica</h1>
+      <p class="meta">
+        <strong>Cliente:</strong> BEEF MARKET<br />
+        <strong>Proyecto:</strong> Sistema web de catálogo + cotizador de parrilladas<br />
+        <strong>Vigencia:</strong> 15 días naturales
+      </p>
+
+      <h2>1. Alcance del sistema</h2>
+      <ul>
+        <li>Página de bienvenida con navegación a catálogo y cotizador de eventos.</li>
+        <li>Vista de Productos: servicio de venta de tablas de carnes y quesos con sus accesorios, listas para pedir por WhatsApp.</li>
+        <li>Cotizador de parrilladas para eventos con selección de fecha, tipo de servicio y número de personas.</li>
+        <li>Cálculo automático de productos, asadores, tarifa de servicio y total estimado.</li>
+        <li>Envío del resumen de la cotización por WhatsApp.</li>
+        <li>Panel de proveedores protegido con login por correo y roles.</li>
+        <li>SEO básico y meta tags para compartir en WhatsApp.</li>
+        <li>Diseño responsivo optimizado para dispositivos móviles.</li>
+        <li>Hosting configurado en Firebase con dominio propio: <strong>beefmarketvhsa.web.app</strong>.</li>
+      </ul>
+
+      <h2>2. Integración de la información de Nora</h2>
+      <p>Al recibir el menú completo, precios, tarifas por distancia y condiciones del parrillero a domicilio, se integrarán:</p>
+      <ul>
+        <li>Productos, precios y cantidades por persona en el cotizador.</li>
+        <li>Tarifas por distancia de entrega.</li>
+        <li>Costos y condiciones del parrillero a domicilio.</li>
+        <li>Ajustes prácticos adicionales definidos por el negocio.</li>
+      </ul>
+
+      <h2>3. Inversión</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th style="text-align: right;">Monto</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Desarrollo del sistema</td>
+            <td style="text-align: right; font-weight: 700;">$12,000.00 MXN</td>
+          </tr>
+          <tr>
+            <td>Soporte mensual (ajustes/hosting/seguridad y monitoreo básico)</td>
+            <td style="text-align: right; font-weight: 700;">$500.00 MXN/mes</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="highlight">
+        <div class="price">$12,000.00 MXN</div>
+        <p style="margin: 0; color: #4b5563;">Inversión total por el sistema.</p>
+      </div>
+
+      <h2>4. Condiciones de pago</h2>
+      <ul>
+        <li><strong>50% al iniciar:</strong> $6,000.00 MXN</li>
+        <li><strong>50% contra entrega:</strong> $6,000.00 MXN</li>
+      </ul>
+
+      <h2>5. Entregables</h2>
+      <ul>
+        <li>Código fuente en repositorio GitHub.</li>
+        <li>Sitio publicado y funcional.(Landing page y Cotizador)</li>
+        <li>Instrucciones básicas de administración.</li>
+        <li>30 días de garantía contra errores del sistema.</li>
+      </ul>
+
+      <p class="meta" style="margin-top: 40px;">
+        <em>Esta propuesta es flexible y puede ajustarse según las necesidades del negocio.</em>
+      </p>
+
+      <div class="signature">
+        <div>
+          <strong>Elaboró</strong><br />
+          Unknown Shoppers
+        </div>
+        <div>
+          <strong>Aceptó</strong><br />
+          BEEF MARKET
+        </div>
+      </div>
+
+      <div class="footer">
+        Powered by The Unknown Shopper · unknownshoppers.com
+      </div>
+    </div>
+
+    <div class="actions">
+      <button onclick="descargarPDF()">Guardar / Imprimir PDF</button>
+    </div>
+
+    <script>
+      function descargarPDF() {
+        window.print()
+      }
+    </script>
+  </body>
+</html>

@@ -45,6 +45,37 @@ export const SERVICE_TYPES = {
   },
 }
 
+// Dirección fija: Tulipanes #108, Fracc. Lago Ilusiones.
+// Cada zona incluye CP, colonia, distancia y costo de traslado.
+export const ZONES = [
+  { id: '86000-1', cp: '86000', name: 'Lago Ilusiones / Altabrisa (base)', distanceKm: 2, cost: 50 },
+  { id: '86000-2', cp: '86000', name: 'Altabrisa Centro', distanceKm: 3, cost: 80 },
+  { id: '86035-1', cp: '86035', name: 'Centro Histórico', distanceKm: 6, cost: 150 },
+  { id: '86035-2', cp: '86035', name: 'Tabasco 2000', distanceKm: 7, cost: 170 },
+  { id: '86090-1', cp: '86090', name: 'Plaza Crystal', distanceKm: 10, cost: 250 },
+  { id: '86090-2', cp: '86090', name: 'Gaviotas', distanceKm: 11, cost: 270 },
+  { id: '86100-1', cp: '86100', name: 'Comal', distanceKm: 15, cost: 400 },
+  { id: '86100-2', cp: '86100', name: 'Calzada', distanceKm: 16, cost: 420 },
+]
+
+// Coordenadas de la dirección fija: Tulipanes #108, Lago Ilusiones, 86040 Villahermosa, Tab.
+export const BUSINESS_COORDS = { lat: 17.9980712, lng: -92.9279427 }
+export const TRANSPORT_RATE_PER_KM = 15
+
+export function haversineDistance(a, b) {
+  const R = 6371
+  const toRad = (x) => (x * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLng = toRad(b.lng - a.lng)
+  const lat1 = toRad(a.lat)
+  const lat2 = toRad(b.lat)
+  const c =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
+  const h = 2 * Math.atan2(Math.sqrt(c), Math.sqrt(1 - c))
+  return R * h
+}
+
 export function loadInventory() {
   if (typeof window === 'undefined') return DEFAULT_INVENTORY
   try {
@@ -77,7 +108,7 @@ function buildFoodDetails(inventory, people, menuIds) {
     }))
 }
 
-export function calculateEventCost(inventory, people, serviceType) {
+export function calculateEventCost(inventory, people, serviceType, transportCost = 0) {
   const service = SERVICE_TYPES[serviceType] || SERVICE_TYPES.basica
   const menuIds = SERVICE_MENUS[serviceType] || SERVICE_MENUS.basica
   const details = buildFoodDetails(inventory, people, menuIds)
@@ -85,11 +116,12 @@ export function calculateEventCost(inventory, people, serviceType) {
   const personnelCount = service.personnelPer > 0 ? Math.ceil(people / service.personnelPer) : 0
   const personnelCost = personnelCount * service.personnelCost
   const baseServiceCost = Math.max(service.extraPerPerson * people, service.minFee)
-  const serviceCost = baseServiceCost + personnelCost
+  const serviceCost = baseServiceCost + personnelCost + Number(transportCost || 0)
 
   return {
     foodCost,
     serviceCost,
+    transportCost: Number(transportCost || 0),
     total: foodCost + serviceCost,
     details,
     personnelCount,
