@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, CircleMarker, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -70,8 +70,17 @@ function RoutingMachine({ from, to, onDistance }) {
   return null
 }
 
+let lastNominatimCall = 0
+
+async function waitForNominatim() {
+  const delay = Math.max(0, 1500 - (Date.now() - lastNominatimCall))
+  if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay))
+  lastNominatimCall = Date.now()
+}
+
 async function nominatimReverse(lat, lng) {
   try {
+    await waitForNominatim()
     const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18&accept-language=es`,
       { headers: { 'User-Agent': 'BEEF-MARKET-COTIZADOR' } }
@@ -85,6 +94,7 @@ async function nominatimReverse(lat, lng) {
 
 async function nominatimSearch(query) {
   try {
+    await waitForNominatim()
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         query
@@ -101,15 +111,24 @@ async function nominatimSearch(query) {
 
 function parseGoogleMapsCoords(link) {
   if (!link) return null
-  // Formato: .../@17.xxx,-92.xxx,...
-  let m = link.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (m) return { lat: Number(m[1]), lng: Number(m[2]) }
-  // Formato: ?q=17.xxx,-92.xxx
-  m = link.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/)
-  if (m) return { lat: Number(m[1]), lng: Number(m[2]) }
-  // Formato: !3d17.xxx!4d-92.xxx
-  m = link.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
-  if (m) return { lat: Number(m[1]), lng: Number(m[2]) }
+  const patterns = [
+    // .../@17.xxx,-92.xxx,...
+    /@(-?\d+\.\d+),(-?\d+\.\d+)/,
+    // ?q=17.xxx,-92.xxx
+    /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    // ?query=17.xxx,-92.xxx
+    /[?&]query=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    // ?daddr=17.xxx,-92.xxx
+    /[?&]daddr=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    // ?saddr=17.xxx,-92.xxx
+    /[?&]saddr=(-?\d+\.\d+),(-?\d+\.\d+)/,
+    // !3d17.xxx!4d-92.xxx
+    /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/,
+  ]
+  for (const p of patterns) {
+    const m = link.match(p)
+    if (m) return { lat: Number(m[1]), lng: Number(m[2]) }
+  }
   return null
 }
 
@@ -119,11 +138,18 @@ export default function MapPicker({ business, pin, onChange, onDistance, onAddre
   const [addressQuery, setAddressQuery] = useState('')
   const [mapsLink, setMapsLink] = useState('')
   const [loading, setLoading] = useState(false)
+  const skipNextReverse = useRef(false)
+  const lastSearchAt = useRef(0)
+  const lastQuery = useRef('')
 
   useEffect(() => {
     if (!pin) {
       onAddress?.(null)
       onDistance?.(0)
+      return
+    }
+    if (skipNextReverse.current) {
+      skipNextReverse.current = false
       return
     }
     let active = true
@@ -138,7 +164,7 @@ export default function MapPicker({ business, pin, onChange, onDistance, onAddre
   async function searchCP() {
     if (!cp.trim()) return
     setLoading(true)
-    const results = await nominatimSearch(`${cp.trim()}, Villahermosa, Tabasco, México`)
+    const results = await nominatimSearch(`${cp.trim()}, México`)
     setLoading(false)
     if (results?.[0]) {
       setCpCenter([Number(results[0].lat), Number(results[0].lon)])
@@ -146,25 +172,35 @@ export default function MapPicker({ business, pin, onChange, onDistance, onAddre
   }
 
   async function searchAddress() {
-    if (!addressQuery.trim()) return
+    const q = addressQuery.trim()
+    if (!q) return
+    if (q === lastQuery.current) return
+    if (Date.now() - lastSearchAt.current < 1500) return
+    lastSearchAt.current = Date.now()
+    lastQuery.current = q
     setLoading(true)
-    const results = await nominatimSearch(`${addressQuery.trim()}, Villahermosa, Tabasco, México`)
+    const fullQuery = cp.trim() ? `${q}, ${cp.trim()}` : q
+    const results = await nominatimSearch(fullQuery)
     setLoading(false)
     if (results?.[0]) {
+      onAddress?.(results[0])
+      skipNextReverse.current = true
       onChange({ lat: Number(results[0].lat), lng: Number(results[0].lon) })
       setCpCenter([Number(results[0].lat), Number(results[0].lon)])
     }
   }
 
   function useMapsLink() {
-    const coords = parseGoogleMapsCoords(mapsLink)
+    const raw = mapsLink.trim()
+    const coords = parseGoogleMapsCoords(raw)
     if (coords) {
       onChange(coords)
       setCpCenter([coords.lat, coords.lng])
+      setMapsLink('')
     } else if (onMapsLink) {
-      onMapsLink(mapsLink.trim())
+      onMapsLink(raw)
+      setMapsLink('')
     }
-    setMapsLink('')
   }
 
   return (
@@ -187,21 +223,17 @@ export default function MapPicker({ business, pin, onChange, onDistance, onAddre
             CP
           </button>
         </div>
-        <div className="col-span-2 flex items-center gap-2">
+        <div className="col-span-2">
           <input
             type="text"
             value={addressQuery}
             onChange={(e) => setAddressQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchAddress()}
+            onBlur={searchAddress}
+            enterKeyHint="search"
             placeholder="Calle, número, colonia..."
             className="w-full rounded-2xl border border-beef-line bg-black/20 px-3 py-2 text-sm text-white outline-none focus:border-beef-accent"
           />
-          <button
-            onClick={searchAddress}
-            className="rounded-2xl bg-beef-accent px-3 py-2 text-sm font-semibold text-black"
-          >
-            Buscar
-          </button>
         </div>
       </div>
 
