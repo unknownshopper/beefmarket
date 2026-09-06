@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import Header from '../components/Header'
 import Login from '../components/Login'
 import { useAuth } from '../contexts/AuthContext'
-import { canAccessEventos, getRole } from '../lib/roles'
-import { getClients } from '../lib/clients'
-import { getQuotes, updateQuoteStatus } from '../lib/quotes'
+import { canAccessEventos, getRole, isAdmin } from '../lib/roles'
+import { getClients, deleteClient } from '../lib/clients'
+import { getQuotes, updateQuoteStatus, deleteQuote } from '../lib/quotes'
 import { formatMXN } from '../lib/money'
 
 const STATUS_OPTIONS = ['pendiente', 'confirmada', 'entregada', 'cancelada']
@@ -74,6 +74,26 @@ export default function CRM() {
     }
   }
 
+  async function removeQuote(id) {
+    if (!confirm('¿Eliminar este registro? Esta acción no se puede deshacer.')) return
+    try {
+      await deleteQuote(id)
+      setQuotes((prev) => prev.filter((q) => q.id !== id))
+    } catch (err) {
+      console.error('Error eliminando cotización:', err)
+    }
+  }
+
+  async function removeClient(id) {
+    if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return
+    try {
+      await deleteClient(id)
+      setClients((prev) => prev.filter((c) => c.id !== id))
+    } catch (err) {
+      console.error('Error eliminando cliente:', err)
+    }
+  }
+
   if (user === undefined) {
     return (
       <div className="min-h-dvh bg-beef-bg">
@@ -98,6 +118,7 @@ export default function CRM() {
 
   const role = getRole(user.email)
   const hasAccess = canAccessEventos(role)
+  const canDelete = isAdmin(role)
 
   return (
     <div className="min-h-dvh bg-beef-bg">
@@ -194,17 +215,27 @@ export default function CRM() {
                                 {q.serviceLabel} · {q.people} personas · {formatMXN(q.total)}
                               </div>
                             </div>
-                            <select
-                              value={q.status || 'pendiente'}
-                              onChange={(e) => changeStatus(q.id, e.target.value)}
-                              className="rounded-xl border border-beef-line bg-black/20 px-2 py-1 text-sm text-white outline-none"
-                            >
-                              {STATUS_OPTIONS.map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={q.status || 'pendiente'}
+                                onChange={(e) => changeStatus(q.id, e.target.value)}
+                                className="rounded-xl border border-beef-line bg-black/20 px-2 py-1 text-sm text-white outline-none"
+                              >
+                                {STATUS_OPTIONS.map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                              </select>
+                              {canDelete ? (
+                                <button
+                                  onClick={() => removeQuote(q.id)}
+                                  className="rounded-xl border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400"
+                                >
+                                  Eliminar
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="mt-2 text-xs text-white/70">
                             Tel: {q.clientPhone}{' '}
@@ -261,17 +292,27 @@ export default function CRM() {
                                 {q.serviceLabel} · {q.people} personas · {formatMXN(q.total)}
                               </div>
                             </div>
-                            <select
-                              value={q.status || 'pendiente'}
-                              onChange={(e) => changeStatus(q.id, e.target.value)}
-                              className="rounded-xl border border-beef-line bg-black/20 px-2 py-1 text-sm text-white outline-none"
-                            >
-                              {STATUS_OPTIONS.map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={q.status || 'pendiente'}
+                                onChange={(e) => changeStatus(q.id, e.target.value)}
+                                className="rounded-xl border border-beef-line bg-black/20 px-2 py-1 text-sm text-white outline-none"
+                              >
+                                {STATUS_OPTIONS.map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                              </select>
+                              {canDelete ? (
+                                <button
+                                  onClick={() => removeQuote(q.id)}
+                                  className="rounded-xl border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400"
+                                >
+                                  Eliminar
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
                           <div className="mt-2 text-xs text-white/70">
                             Tel: {q.clientPhone}{' '}
@@ -302,8 +343,20 @@ export default function CRM() {
                           key={c.id}
                           className="rounded-3xl border border-beef-line bg-beef-card p-4"
                         >
-                          <div className="text-base font-semibold text-white">{c.name || 'Sin nombre'}</div>
-                          <div className="text-xs text-white/60">{c.phone}</div>
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <div className="text-base font-semibold text-white">{c.name || 'Sin nombre'}</div>
+                              <div className="text-xs text-white/60">{c.phone}</div>
+                            </div>
+                            {canDelete ? (
+                              <button
+                                onClick={() => removeClient(c.id)}
+                                className="rounded-xl border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400"
+                              >
+                                Eliminar
+                              </button>
+                            ) : null}
+                          </div>
                           {c.pin || c.clientMapsLink ? (
                             <div className="mt-1 text-xs text-white/60">
                               <a
@@ -349,6 +402,14 @@ export default function CRM() {
                             <div className="text-right">
                               <div className="text-lg font-bold text-amber-500">{formatMXN(q.total)}</div>
                               <div className="text-xs text-white/60">{q.serviceLabel || q.serviceType || ''}</div>
+                              {canDelete ? (
+                                <button
+                                  onClick={() => removeQuote(q.id)}
+                                  className="mt-2 rounded-xl border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400"
+                                >
+                                  Eliminar
+                                </button>
+                              ) : null}
                             </div>
                           </div>
                           {Array.isArray(q.details) && q.details.length > 0 ? (

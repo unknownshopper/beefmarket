@@ -1,6 +1,6 @@
 const ROLE_BY_EMAIL = {
   'the@unknownshoppers.com': 'admin',
-  'nora@beefmarket.com': 'nora',
+  'nora@beefmarket.com': 'owner',
   'nora@beefmaster.com': 'owner',
   'caja@beefmaster.com': 'caja',
   'hola@beefmaster.com': 'ventas',
@@ -19,4 +19,8 @@ export function canAccessProveedores(role) {
 export function canAccessEventos(role) {
   // El cotizador es de uso exclusivo de nora y admin.
   return role === 'admin' || role === 'nora' || role === 'owner'
+}
+
+export function isAdmin(role) {
+  return role === 'admin'
 }

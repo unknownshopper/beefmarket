@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import SEO from '../components/SEO'
+import Login from '../components/Login'
 import MapPicker from '../components/MapPicker'
+import { useAuth } from '../contexts/AuthContext'
 import { BUSINESS, OLIVE_ITEMS, TABLES } from '../catalog'
 import { buildWhatsAppUrl } from '../lib/whatsapp'
 import { formatMXN } from '../lib/money'
@@ -19,6 +21,7 @@ function countItems(cart) {
 }
 
 export default function Productos() {
+  const { user } = useAuth()
   const [cart, setCart] = useState({})
   const [clientName, setClientName] = useState('')
   const [clientPhone, setClientPhone] = useState('')
@@ -131,6 +134,28 @@ export default function Productos() {
       savedRef.current = false
       console.error('Error guardando pedido:', err)
     }
+  }
+
+  if (user === undefined) {
+    return (
+      <div className="min-h-dvh bg-beef-bg">
+        <Header />
+        <main className="flex min-h-[60vh] items-center justify-center px-4">
+          <div className="text-sm text-white/60">Cargando...</div>
+        </main>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-dvh bg-beef-bg">
+        <Header />
+        <main className="flex min-h-[60vh] items-center justify-center px-4 pt-6 safe-bottom">
+          <Login title="Acceso a Olive" subtitle="Solo personal autorizado." />
+        </main>
+      </div>
+    )
   }
 
   return (

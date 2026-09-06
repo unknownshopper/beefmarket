@@ -1,4 +1,4 @@
-import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore'
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs } from 'firebase/firestore'
 import { db } from './firebase'
 
 export function normalizePhone(raw) {
@@ -47,4 +47,8 @@ export async function saveClient({ name, phone, pin, clientMapsLink, address }) 
 export async function getClients() {
   const snap = await getDocs(collection(db, 'clients'))
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+}
+
+export async function deleteClient(id) {
+  await deleteDoc(doc(db, 'clients', id))
 }

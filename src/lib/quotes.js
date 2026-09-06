@@ -1,6 +1,7 @@
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -86,4 +87,8 @@ export async function getUpcomingQuotes(limit = 100) {
 export async function updateQuoteStatus(id, status) {
   const ref = doc(db, 'quotes', id)
   await updateDoc(ref, { status, updatedAt: new Date().toISOString() })
+}
+
+export async function deleteQuote(id) {
+  await deleteDoc(doc(db, 'quotes', id))
 }

@@ -28,19 +28,30 @@ function MenuButton({ open, onClick }) {
   )
 }
 
+const SECTION_LABEL = {
+  '/': 'Inicio',
+  '/productos': 'Productos',
+  '/eventos': 'Eventos',
+  '/proveedores': 'Proveedores',
+  '/crm': 'CRM',
+}
+
 export default function Header({ right = null }) {
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const { user } = useAuth()
   const role = getRole(user?.email)
+  const section = SECTION_LABEL[pathname] || BUSINESS.name
 
-  const links = [
-    { to: '/', label: 'Inicio' },
-    { to: '/productos', label: 'Productos' },
-    ...(canAccessEventos(role) ? [{ to: '/eventos', label: 'Eventos' }] : []),
-    ...(canAccessProveedores(role) ? [{ to: '/proveedores', label: 'Proveedores' }] : []),
-    { to: '/crm', label: 'CRM' },
-  ]
+  // Sin sesión no hay navegación pública. Con sesión se abre el panel interno.
+  const links = !user
+    ? []
+    : [
+        { to: '/crm', label: 'Panel' },
+        ...(canAccessEventos(role) ? [{ to: '/eventos', label: 'Eventos' }] : []),
+        { to: '/productos', label: 'Productos' },
+        ...(canAccessProveedores(role) ? [{ to: '/proveedores', label: 'Proveedores' }] : []),
+      ]
 
   function closeMenu() {
     setMenuOpen(false)
@@ -53,10 +64,7 @@ export default function Header({ right = null }) {
           <div className="h-10 w-10 overflow-hidden rounded-2xl border border-beef-line bg-black/20">
             <img src="/logo.jpg" alt={BUSINESS.name} className="h-full w-full object-cover" />
           </div>
-          <div>
-            <div className="text-sm font-semibold tracking-wide">{BUSINESS.name}</div>
-            <div className="text-xs text-white/60">{BUSINESS.addressShort}</div>
-          </div>
+          <div className="text-sm font-semibold tracking-wide">{section}</div>
         </Link>
 
         <div className="flex items-center gap-2">
@@ -81,13 +89,15 @@ export default function Header({ right = null }) {
             })}
           </nav>
 
-          <div className="sm:hidden">
-            <MenuButton open={menuOpen} onClick={() => setMenuOpen((v) => !v)} />
-          </div>
+          {links.length ? (
+            <div className="sm:hidden">
+              <MenuButton open={menuOpen} onClick={() => setMenuOpen((v) => !v)} />
+            </div>
+          ) : null}
         </div>
       </div>
 
-      {menuOpen ? (
+      {menuOpen && links.length ? (
         <nav className="mt-3 rounded-3xl border border-beef-line bg-beef-card p-3 sm:hidden">
           {links.map((l) => {
             const active = pathname === l.to
