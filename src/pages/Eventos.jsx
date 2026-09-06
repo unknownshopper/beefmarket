@@ -278,13 +278,27 @@ export default function Eventos() {
                         {distanceKm.toFixed(1)} km
                         {routeDistanceKm === null ? ' (línea recta, ruta no disponible)' : ' (por ruta)'}
                       </div>
-                      <div>
-                        <span className="text-white/60">Costo traslado:</span>{' '}
-                        {formatMXN(transportCost)}
-                      </div>
-                      <div>
-                        <span className="text-white/60">Tarifa:</span>{' '}
-                        $500 base / 3 km + $500 cada 2 km
+                      <div className="sm:col-span-2">
+                        <span className="text-white/60">Tarifa de traslado:</span>
+                        <div className="mt-1 flex gap-2">
+                          {[
+                            { label: 'Cercano (≤ 5 km)', cost: 50, active: distanceKm <= 5 },
+                            { label: 'Lejano (≤ 15 km)', cost: 100, active: distanceKm > 5 && distanceKm <= 15 },
+                            { label: 'Muy lejano (> 15 km)', cost: 150, active: distanceKm > 15 },
+                          ].map((t) => (
+                            <div
+                              key={t.cost}
+                              className={`flex-1 rounded-2xl border px-3 py-2 text-center text-xs font-semibold ${
+                                t.active
+                                  ? 'border-beef-accent bg-beef-accent text-black'
+                                  : 'border-beef-line bg-black/20 text-white/60'
+                              }`}
+                            >
+                              {t.label}
+                              <div className="text-sm">{formatMXN(t.cost)}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                     {address ? (

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { BUSINESS } from '../catalog'
+import { useAuth } from '../contexts/AuthContext'
+import { canAccessEventos, canAccessProveedores, getRole } from '../lib/roles'
 
 function MenuButton({ open, onClick }) {
   return (
@@ -29,12 +31,14 @@ function MenuButton({ open, onClick }) {
 export default function Header({ right = null }) {
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const { user } = useAuth()
+  const role = getRole(user?.email)
 
   const links = [
     { to: '/', label: 'Inicio' },
     { to: '/productos', label: 'Productos' },
-    { to: '/eventos', label: 'Eventos' },
-    { to: '/proveedores', label: 'Proveedores' },
+    ...(canAccessEventos(role) ? [{ to: '/eventos', label: 'Eventos' }] : []),
+    ...(canAccessProveedores(role) ? [{ to: '/proveedores', label: 'Proveedores' }] : []),
     { to: '/crm', label: 'CRM' },
   ]
 

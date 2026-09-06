@@ -65,8 +65,8 @@ export async function getQuote(id) {
   return { id: snap.id, ...snap.data() }
 }
 
-export async function getQuotes(limit = 100) {
-  const q = query(collection(db, 'quotes'), orderBy('date', 'desc'), queryLimit(limit))
+export async function getQuotes(limit = 200) {
+  const q = query(collection(db, 'quotes'), orderBy('createdAt', 'desc'), queryLimit(limit))
   const snap = await getDocs(q)
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 }

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import SEO from '../components/SEO'
@@ -6,6 +6,8 @@ import MapPicker from '../components/MapPicker'
 import { BUSINESS, OLIVE_ITEMS, TABLES } from '../catalog'
 import { buildWhatsAppUrl } from '../lib/whatsapp'
 import { formatMXN } from '../lib/money'
+import { toE164 } from '../lib/clients'
+import { saveQuote } from '../lib/quotes'
 import {
   BUSINESS_COORDS,
   calculateTransportCost,
@@ -26,6 +28,11 @@ export default function Productos() {
   const [routeDistanceKm, setRouteDistanceKm] = useState(null)
   const [mapAddress, setMapAddress] = useState(null)
   const printRef = useRef(null)
+  const savedRef = useRef(false)
+
+  useEffect(() => {
+    savedRef.current = false
+  }, [cart, clientName, clientPhone, mode, deliveryAddress, pin])
 
   function inc(id) {
     setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }))
@@ -89,6 +96,42 @@ export default function Productos() {
     order.items.length && clientName
       ? buildWhatsAppUrl(BUSINESS.phoneE164, messageLines.join('\n'))
       : '#'
+
+  async function saveOrder() {
+    if (!order.items.length || !clientName || savedRef.current) return
+    savedRef.current = true
+    try {
+      await saveQuote({
+        clientName,
+        clientPhone,
+        clientPhoneE164: toE164(clientPhone),
+        date: '',
+        people: order.items.reduce((s, i) => s + (i.serves || 0) * i.qty, 0),
+        serviceType: 'tablas',
+        serviceLabel: 'Pedido de tablas Olive',
+        pin,
+        clientMapsLink: deliveryAddress.startsWith('http') ? deliveryAddress : '',
+        address: mode === 'delivery' ? deliveryAddress : '',
+        distanceKm,
+        transportCost,
+        foodCost: order.tableCost,
+        serviceCost: 0,
+        personnelCost: 0,
+        personnelCount: 0,
+        total: order.total,
+        details: order.items.map((i) => ({
+          name: i.name,
+          qty: i.qty,
+          serves: i.serves || 0,
+          unitPrice: i.price || 0,
+          lineTotal: i.subtotal,
+        })),
+      })
+    } catch (err) {
+      savedRef.current = false
+      console.error('Error guardando pedido:', err)
+    }
+  }
 
   return (
     <div className="min-h-dvh bg-beef-bg">
@@ -274,6 +317,7 @@ export default function Productos() {
                 href={waUrl}
                 target="_blank"
                 rel="noreferrer"
+                onClick={saveOrder}
                 className={`flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold text-black ${
                   clientName ? 'bg-beef-accent' : 'bg-beef-accent/50 pointer-events-none'
                 }`}
@@ -282,7 +326,10 @@ export default function Productos() {
               </a>
 
               <button
-                onClick={() => window.print()}
+                onClick={() => {
+                  saveOrder()
+                  window.print()
+                }}
                 className="flex w-full items-center justify-center rounded-2xl border border-beef-line bg-black/20 px-4 py-3 text-sm font-semibold text-white"
               >
                 Generar PDF

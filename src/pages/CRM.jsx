@@ -39,7 +39,7 @@ export default function CRM() {
   const upcoming = useMemo(
     () =>
       quotes
-        .filter((q) => q.date && q.date >= today)
+        .filter((q) => q.serviceType !== 'tablas' && q.date && q.date >= today)
         .sort((a, b) => a.date.localeCompare(b.date) || b.createdAt.localeCompare(a.createdAt)),
     [quotes, today]
   )
@@ -47,9 +47,15 @@ export default function CRM() {
   const past = useMemo(
     () =>
       quotes
-        .filter((q) => !q.date || q.date < today)
+        .filter((q) => q.serviceType !== 'tablas' && (!q.date || q.date < today))
         .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')),
     [quotes, today]
+  )
+
+  const allQuotes = useMemo(
+    () =>
+      [...quotes].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')),
+    [quotes]
   )
 
   const allClients = useMemo(
@@ -121,7 +127,7 @@ export default function CRM() {
           </div>
         ) : (
           <>
-            <div className="mb-4 flex gap-2">
+            <div className="mb-4 flex flex-wrap gap-2">
               <button
                 onClick={() => setTab('eventos')}
                 className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
@@ -151,6 +157,16 @@ export default function CRM() {
                 }`}
               >
                 Clientes
+              </button>
+              <button
+                onClick={() => setTab('auditoria')}
+                className={`rounded-2xl px-4 py-2 text-sm font-semibold ${
+                  tab === 'auditoria'
+                    ? 'bg-beef-accent text-black'
+                    : 'border border-beef-line bg-black/20 text-white/80'
+                }`}
+              >
+                Auditoría
               </button>
             </div>
 
@@ -303,6 +319,54 @@ export default function CRM() {
                               </a>
                             </div>
                           ) : null}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
+
+                {tab === 'auditoria' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between rounded-3xl border border-beef-line bg-black/20 px-4 py-3">
+                      <span className="text-sm text-white/70">Cotizaciones generadas</span>
+                      <span className="text-lg font-bold text-white">{allQuotes.length}</span>
+                    </div>
+                    {allQuotes.length === 0 ? (
+                      <p className="text-sm text-white/60">No hay cotizaciones registradas.</p>
+                    ) : (
+                      allQuotes.map((q) => (
+                        <div
+                          key={q.id}
+                          className="rounded-3xl border border-beef-line bg-beef-card p-4"
+                        >
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div>
+                              <div className="text-base font-semibold text-white">{q.clientName || 'Cliente'}</div>
+                              <div className="text-xs text-white/60">
+                                {q.createdAt ? new Date(q.createdAt).toLocaleString('es-MX') : '—'}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-amber-500">{formatMXN(q.total)}</div>
+                              <div className="text-xs text-white/60">{q.serviceLabel || q.serviceType || ''}</div>
+                            </div>
+                          </div>
+                          {Array.isArray(q.details) && q.details.length > 0 ? (
+                            <div className="mt-2 border-t border-beef-line pt-2 text-xs text-white/70">
+                              {q.details.map((d, i) => (
+                                <div key={i} className="flex justify-between gap-2">
+                                  <span>
+                                    {d.qty} × {d.name}
+                                  </span>
+                                  <span>{formatMXN(d.lineTotal ?? d.unitPrice ?? 0)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="mt-2 text-xs text-white/60">
+                              {q.serviceLabel || 'Sin detalle'} · {q.people || 0} personas
+                            </div>
+                          )}
                         </div>
                       ))
                     )}
